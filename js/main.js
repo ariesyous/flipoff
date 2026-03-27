@@ -52,11 +52,12 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Fullscreen button
+  // Fullscreen button — do NOT call initAudio() here; touching the Web Audio API
+  // before requestFullscreen() consumes the user-activation token in many browsers.
+  // The document-level click listener already handles audio init for every click.
   const fullscreenBtn = document.getElementById('fullscreen-btn');
   if (fullscreenBtn) {
     fullscreenBtn.addEventListener('click', () => {
-      initAudio();
       if (document.fullscreenElement) {
         document.exitFullscreen();
       } else {
@@ -65,7 +66,9 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Sync fullscreen state: toggle CSS class and resize tiles to fill the screen
+  // Sync fullscreen state: toggle CSS class and resize tiles to fill the screen.
+  // Use screen.width/height (monitor resolution) rather than window.innerWidth/Height
+  // because the viewport may not have finished resizing when fullscreenchange fires.
   document.addEventListener('fullscreenchange', () => {
     const isFs = !!document.fullscreenElement;
     document.body.classList.toggle('fullscreen-active', isFs);
@@ -75,8 +78,8 @@ document.addEventListener('DOMContentLoaded', () => {
       const padH = 72;  // 36px left + 36px right
       const padV = 60;  // 24px top + 36px bottom
       const gap  = 5;
-      const maxW = (window.innerWidth  - padH - (board.cols - 1) * gap) / board.cols;
-      const maxH = (window.innerHeight - padV - (board.rows - 1) * gap) / board.rows;
+      const maxW = (screen.width  - padH - (board.cols - 1) * gap) / board.cols;
+      const maxH = (screen.height - padV - (board.rows - 1) * gap) / board.rows;
       const size = Math.floor(Math.min(maxW, maxH));
       board.boardEl.style.setProperty('--tile-size', `${size}px`);
       board.boardEl.style.setProperty('--tile-gap',  `${gap}px`);
