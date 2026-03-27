@@ -102,10 +102,6 @@ export class Board {
     // Format lines into grid
     const newGrid = this._formatToGrid(lines);
 
-    // Scale stagger so the wave always finishes in ~2700ms regardless of grid size
-    const totalTiles = this.rows * this.cols;
-    const stagger = Math.min(STAGGER_DELAY, Math.floor(2700 / Math.max(1, totalTiles - 1)));
-
     // Determine which tiles need to change
     let hasChanges = false;
 
@@ -115,7 +111,7 @@ export class Board {
         const oldChar = this.currentGrid[r][c];
 
         if (newChar !== oldChar) {
-          const delay = (r * this.cols + c) * stagger;
+          const delay = (r * this.cols + c) * STAGGER_DELAY;
           this.tiles[r][c].scrambleTo(newChar, delay);
           hasChanges = true;
         }
@@ -134,40 +130,10 @@ export class Board {
     // Update grid state
     this.currentGrid = newGrid;
 
-    // Release lock after the last tile finishes (last delay + scramble + flip settle)
-    const lastDelay = (totalTiles - 1) * stagger;
+    // Clear transitioning flag after animation completes
     setTimeout(() => {
       this.isTransitioning = false;
-    }, lastDelay + SCRAMBLE_DURATION + FLIP_DURATION * 2 + 400);
-  }
-
-  resize(newCols, newRows) {
-    this.isTransitioning = false;
-    this.cols = newCols;
-    this.rows = newRows;
-
-    // Update CSS grid dimensions
-    this.boardEl.style.setProperty('--grid-cols', newCols);
-    this.boardEl.style.setProperty('--grid-rows', newRows);
-
-    // Rebuild tile DOM
-    this.gridEl.innerHTML = '';
-    this.tiles = [];
-    this.currentGrid = [];
-
-    for (let r = 0; r < newRows; r++) {
-      const row = [];
-      const charRow = [];
-      for (let c = 0; c < newCols; c++) {
-        const tile = new Tile(r, c);
-        tile.setChar(' ');
-        this.gridEl.appendChild(tile.el);
-        row.push(tile);
-        charRow.push(' ');
-      }
-      this.tiles.push(row);
-      this.currentGrid.push(charRow);
-    }
+    }, TOTAL_TRANSITION + 200);
   }
 
   _formatToGrid(lines) {

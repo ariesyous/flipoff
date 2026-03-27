@@ -3,7 +3,6 @@ import { SoundEngine } from './SoundEngine.js';
 import { MessageRotator } from './MessageRotator.js';
 import { KeyboardController } from './KeyboardController.js';
 import { ControlChannel } from './ControlChannel.js';
-import { GRID_COLS, GRID_ROWS } from './constants.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const boardContainer = document.getElementById('board-container');
@@ -53,45 +52,42 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Fullscreen button — use mousedown so it fires before the document-level click
-  // listener can touch the Web Audio API and potentially consume user activation.
+  // Fullscreen button — do NOT call initAudio() here; touching the Web Audio API
+  // before requestFullscreen() consumes the user-activation token in many browsers.
+  // The document-level click listener already handles audio init for every click.
   const fullscreenBtn = document.getElementById('fullscreen-btn');
   if (fullscreenBtn) {
-    fullscreenBtn.addEventListener('mousedown', (e) => {
-      e.preventDefault();
+    fullscreenBtn.addEventListener('click', () => {
       if (document.fullscreenElement) {
         document.exitFullscreen();
       } else {
-        document.documentElement.requestFullscreen().catch((err) => {
-          console.error('Fullscreen request failed:', err.name, err.message);
-        });
+        document.documentElement.requestFullscreen().catch(() => {});
       }
     });
   }
 
-  // Fullscreen: expand the grid to fill the monitor with more tiles, then restore on exit.
-  // Defer calculation 100ms so window.innerWidth/Height reflect the fullscreen viewport.
+  // Sync fullscreen state: toggle CSS class and resize tiles to fill the screen.
+  // fullscreenchange fires mid-transition, so defer the tile calculation until
+  // the browser has finished resizing the viewport.
   document.addEventListener('fullscreenchange', () => {
     const isFs = !!document.fullscreenElement;
     document.body.classList.toggle('fullscreen-active', isFs);
 
     if (isFs) {
       setTimeout(() => {
-        // Tile size stays at the CSS clamp max (62px) plus gap (5px)
-        const tileSize = 62;
-        const gap      = 4;
-        const padH     = 72;  // matches .fullscreen-active .board padding: 36px each side
-        const padV     = 60;  // matches .fullscreen-active .board padding: 24px top + 36px bottom
-        const cols = Math.max(1, Math.floor((window.innerWidth  - padH + gap) / (tileSize + gap)));
-        const rows = Math.max(1, Math.floor((window.innerHeight - padV + gap) / (tileSize + gap)));
-        rotator.stop();
-        board.resize(cols, rows);
-        rotator.start();
+        // Padding values must match .fullscreen-active .board in board.css
+        const padH = 72;  // 36px left + 36px right
+        const padV = 60;  // 24px top + 36px bottom
+        const gap  = 5;
+        const maxW = (window.innerWidth  - padH - (board.cols - 1) * gap) / board.cols;
+        const maxH = (window.innerHeight - padV - (board.rows - 1) * gap) / board.rows;
+        const size = Math.floor(Math.min(maxW, maxH));
+        board.boardEl.style.setProperty('--tile-size', `${size}px`);
+        board.boardEl.style.setProperty('--tile-gap',  `${gap}px`);
       }, 100);
     } else {
-      rotator.stop();
-      board.resize(GRID_COLS, GRID_ROWS);
-      rotator.start();
+      board.boardEl.style.removeProperty('--tile-size');
+      board.boardEl.style.removeProperty('--tile-gap');
     }
   });
 });
