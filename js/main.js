@@ -2,6 +2,7 @@ import { Board } from './Board.js';
 import { SoundEngine } from './SoundEngine.js';
 import { MessageRotator } from './MessageRotator.js';
 import { KeyboardController } from './KeyboardController.js';
+import { ControlChannel } from './ControlChannel.js';
 
 document.addEventListener('DOMContentLoaded', () => {
   const boardContainer = document.getElementById('board-container');
@@ -25,6 +26,21 @@ document.addEventListener('DOMContentLoaded', () => {
 
   // Start message rotation
   rotator.start();
+
+  // Receive commands from control.html via BroadcastChannel
+  if (typeof BroadcastChannel !== 'undefined') {
+    const ch = new ControlChannel();
+    ch.on('ping', () => ch.send('pong'));
+    ch.on('message', ({ lines }) => { rotator.stop(); board.displayMessage(lines); });
+    ch.on('stop-rotation', () => rotator.stop());
+    ch.on('start-rotation', () => rotator.start());
+    ch.on('set-messages', ({ messages }) => {
+      rotator.stop();
+      rotator.messages = messages;
+      rotator.currentIndex = -1;
+      rotator.start();
+    });
+  }
 
   // Volume toggle button in header
   const volumeBtn = document.getElementById('volume-btn');
