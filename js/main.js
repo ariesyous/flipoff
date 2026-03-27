@@ -52,6 +52,19 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
+  // Fullscreen button
+  const fullscreenBtn = document.getElementById('fullscreen-btn');
+  if (fullscreenBtn) {
+    fullscreenBtn.addEventListener('click', () => {
+      initAudio();
+      if (document.fullscreenElement) {
+        document.exitFullscreen();
+      } else {
+        document.documentElement.requestFullscreen().catch(() => {});
+      }
+    });
+  }
+
   // Sync fullscreen state: toggle CSS class and resize tiles to fill the screen
   document.addEventListener('fullscreenchange', () => {
     const isFs = !!document.fullscreenElement;

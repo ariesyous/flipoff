@@ -134,8 +134,9 @@
   padding: 0 24px 32px;
 }
 
-/* Control Panel nav button */
-.control-panel-btn {
+/* Nav action buttons */
+.control-panel-btn,
+.fullscreen-btn {
   padding: 7px 14px;
   background: #000;
   color: #fff !important;
@@ -145,9 +146,18 @@
   transition: background 0.2s;
 }
 
-.control-panel-btn:hover {
+.control-panel-btn:hover,
+.fullscreen-btn:hover {
   background: #333 !important;
   color: #fff !important;
+}
+
+.fullscreen-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  cursor: pointer;
+  font-family: inherit;
 }
 
 /* Fullscreen: hide header+hero, board fills viewport */
