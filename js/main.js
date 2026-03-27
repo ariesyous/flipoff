@@ -52,16 +52,8 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // "Get Early Access" button: scroll to board and go fullscreen
-  const ctaBtn = document.getElementById('cta-btn');
-  if (ctaBtn) {
-    ctaBtn.addEventListener('click', (e) => {
-      e.preventDefault();
-      initAudio();
-      boardContainer.scrollIntoView({ behavior: 'smooth' });
-      setTimeout(() => {
-        document.documentElement.requestFullscreen().catch(() => {});
-      }, 400);
-    });
-  }
+  // Sync fullscreen-active class so CSS can hide the header/hero
+  document.addEventListener('fullscreenchange', () => {
+    document.body.classList.toggle('fullscreen-active', !!document.fullscreenElement);
+  });
 });
