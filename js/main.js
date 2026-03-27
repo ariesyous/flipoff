@@ -52,8 +52,24 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Sync fullscreen-active class so CSS can hide the header/hero
+  // Sync fullscreen state: toggle CSS class and resize tiles to fill the screen
   document.addEventListener('fullscreenchange', () => {
-    document.body.classList.toggle('fullscreen-active', !!document.fullscreenElement);
+    const isFs = !!document.fullscreenElement;
+    document.body.classList.toggle('fullscreen-active', isFs);
+
+    if (isFs) {
+      // Padding values must match .fullscreen-active .board in board.css
+      const padH = 72;  // 36px left + 36px right
+      const padV = 60;  // 24px top + 36px bottom
+      const gap  = 5;
+      const maxW = (window.innerWidth  - padH - (board.cols - 1) * gap) / board.cols;
+      const maxH = (window.innerHeight - padV - (board.rows - 1) * gap) / board.rows;
+      const size = Math.floor(Math.min(maxW, maxH));
+      board.boardEl.style.setProperty('--tile-size', `${size}px`);
+      board.boardEl.style.setProperty('--tile-gap',  `${gap}px`);
+    } else {
+      board.boardEl.style.removeProperty('--tile-size');
+      board.boardEl.style.removeProperty('--tile-gap');
+    }
   });
 });
