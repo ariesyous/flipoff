@@ -53,16 +53,18 @@ document.addEventListener('DOMContentLoaded', () => {
     });
   }
 
-  // Fullscreen button — do NOT call initAudio() here; touching the Web Audio API
-  // before requestFullscreen() consumes the user-activation token in many browsers.
-  // The document-level click listener already handles audio init for every click.
+  // Fullscreen button — use mousedown so it fires before the document-level click
+  // listener can touch the Web Audio API and potentially consume user activation.
   const fullscreenBtn = document.getElementById('fullscreen-btn');
   if (fullscreenBtn) {
-    fullscreenBtn.addEventListener('click', () => {
+    fullscreenBtn.addEventListener('mousedown', (e) => {
+      e.preventDefault();
       if (document.fullscreenElement) {
         document.exitFullscreen();
       } else {
-        document.documentElement.requestFullscreen().catch(() => {});
+        document.documentElement.requestFullscreen().catch((err) => {
+          console.error('Fullscreen request failed:', err.name, err.message);
+        });
       }
     });
   }
